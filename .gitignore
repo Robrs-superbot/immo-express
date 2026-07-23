@@ -1,24 +1,9 @@
-# Ignorer les fichiers système
+*.apk
+*.aab
+jdk/
+android-sdk/
+android/
+node_modules/
+www/
 .DS_Store
 Thumbs.db
-*.swp
-*.swo
-
-# Ignorer les dossiers de versioning
-.git/
-.gitignore
-
-# Ignorer les fichiers temporaires
-*.log
-tmp/
-temp/
-
-# Ignorer les node_modules (si un jour on ajoute un build)
-node_modules/
-package-lock.json
-yarn.lock
-
-# Ignorer les fichiers de configuration IDE
-.vscode/
-.idea/
-*.sublime-*
