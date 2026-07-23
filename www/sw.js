@@ -1,38 +1,40 @@
+// Immo-Express — Service Worker v1.0
 const CACHE = 'immo-express-v1';
-const URLS = [
+const ASSETS = [
   '/index.html',
   '/css/style.css',
   '/js/app.js',
   '/manifest.json',
-  '/assets/icon-192.svg',
-  '/offline.html'
+  '/assets/icon-192.png',
+  '/assets/icon-512.png'
 ];
 
-self.addEventListener('install', (e) => {
+// Install — cache les assets
+self.addEventListener('install', e => {
+  self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE).then(cache => cache.addAll(URLS))
+    caches.open(CACHE).then(c => c.addAll(ASSETS))
   );
 });
 
-self.addEventListener('fetch', (e) => {
+// Activate — nettoie vieux caches
+self.addEventListener('activate', e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+    )
+  );
+});
+
+// Fetch — réseau d'abord, cache en fallback
+self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      return cached || fetch(e.request).then(response => {
-        return caches.open(CACHE).then(cache => {
-          if (e.request.url.startsWith(self.location.origin)) {
-            cache.put(e.request, response.clone());
-          }
-          return response;
-        });
-      }).catch(() => caches.match('/offline.html'));
-    })
-  );
-});
-
-self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(k => k !== CACHE).map(k => caches.delete(k))
-    ))
+    fetch(e.request)
+      .then(res => {
+        const clone = res.clone();
+        caches.open(CACHE).then(c => c.put(e.request, clone));
+        return res;
+      })
+      .catch(() => caches.match(e.request))
   );
 });
