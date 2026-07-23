@@ -263,4 +263,3 @@
         .auth-footer{margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
         .btn-logout{padding:10px 24px;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--red);font-size:0.85rem;cursor:pointer;font-family:var(--font);transition:all 0.2s}
         .btn-logout:hover{background:rgba(248,113,113,0.1);border-color:var(--red)}
-      }
