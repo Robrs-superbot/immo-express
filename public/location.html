@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#14141a">
+  <title>Louer — Immo-Express · NODUS</title>
+  <link rel="icon" href="assets/icons/icon-192.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/nodus.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <script src="js/components.js" defer></script>
+  <script src="js/app.js" defer></script>
+  <script src="js/api.js" defer></script>
+  <script src="js/auth.js" defer></script>
+</head>
+<body class="n-page">
+
+    <div id="header-placeholder"></div>
+<section class="n-hero" style="background:var(--n-bg-secondary)">
+  <h1>Louer <span class="n-hero-accent">un bien</span> <span class="n-hero-cyan">immobilier</span></h1>
+  <p>Appartements, maisons, studios — trouvez votre futur logement</p>
+  <div class="n-search-bar">
+    <input type="text" id="lSearch" placeholder="Ville, quartier…" oninput="filter()">
+    <select id="lType" onchange="filter()">
+      <option value="all">Tous types</option>
+      <option value="appartement">Appartement</option>
+      <option value="maison">Maison</option>
+      <option value="studio">Studio</option>
+    </select>
+    <button onclick="filter()">Rechercher</button>
+  </div>
+</section>
+
+<div class="n-stats n-reveal">
+  <div class="n-stats-inner">
+    <span class="n-stat-item"><strong id="statCount">0</strong> biens à louer</span>
+    <span class="n-stat-item"><strong>—</strong> annonces vérifiées</span>
+    <span class="n-stat-item"><strong>0</strong> analyses IA réalisées</span>
+    <span class="n-stat-item">Loyer moyen <strong id="statAvg">— €</strong></span>
+  </div>
+</div>
+
+<div class="n-layout n-reveal">
+  <aside class="n-sidebar" id="sidebar">
+    <h3>Filtrer</h3>
+    <div class="n-filter-group">
+      <label>Type</label>
+      <div class="n-filter-btns" id="typeBtns">
+        <button class="active" data-v="all">Tous</button>
+        <button data-v="appartement">Appartement</button>
+        <button data-v="maison">Maison</button>
+        <button data-v="studio">Studio</button>
+      </div>
+    </div>
+    <div class="n-filter-group">
+      <label>Durée de location</label>
+      <select id="lDuration" onchange="filter()">
+        <option value="all">Toutes les durées</option>
+        <option value="longue">Longue durée (Bail classique)</option>
+        <option value="courte">Courte durée (Vacances / Week-end)</option>
+      </select>
+    </div>
+    <div class="n-filter-group">
+      <label>Type de bien</label>
+      <div class="n-filter-btns" id="typeFilters">
+        <button class="active" data-v="all">Tous</button>
+        <button data-v="appartement">Appartement</button>
+        <button data-v="maison">Maison</button>
+        <button data-v="studio">Studio</button>
+      </div>
+    </div>
+    <div class="n-filter-group">
+      <label>Loyer mini (€ / mois)</label>
+      <input type="number" id="lMin" placeholder="Loyer mini €" oninput="filter()" style="margin-bottom:8px">
+      <label>Loyer max (€ / mois)</label>
+      <input type="number" id="lMax" placeholder="Loyer max €" oninput="filter()">
+    </div>
+    <div class="n-filter-group">
+      <label>Surface habitable min (m²)</label>
+      <input type="number" id="lSurf" placeholder="m² min" oninput="filter()">
+    </div>
+    <div class="n-filter-group">
+      <label>Surface terrain min (m²)</label>
+      <input type="number" id="lTerrainSurf" placeholder="Terrain m² min" oninput="filter()">
+    </div>
+    <div class="n-filter-group">
+      <label>Pièces & Chambres</label>
+      <div class="n-filter-btns" id="pieceBtns">
+        <button class="active" data-p="all">Tous</button>
+        <button data-p="1">1</button>
+        <button data-p="2">2</button>
+        <button data-p="3">3</button>
+        <button data-p="4">4+</button>
+      </div>
+    </div>
+    <div class="n-filter-group">
+      <label>Ascenseur</label>
+      <select id="lAscenseur" onchange="filter()">
+        <option value="">Tous</option>
+        <option value="oui">Oui</option>
+        <option value="non">Non</option>
+      </select>
+    </div>
+    <div class="n-filter-group">
+      <label>Exposition</label>
+      <select id="lExpo" onchange="filter()">
+        <option value="">Toutes</option>
+        <option value="sud">Sud</option>
+        <option value="est">Est</option>
+        <option value="ouest">Ouest</option>
+        <option value="nord">Nord</option>
+      </select>
+    </div>
+    <div class="n-filter-group">
+      <label>État du bien</label>
+      <select id="lEtat" onchange="filter()">
+        <option value="">Tous</option>
+        <option value="neuf">Neuf</option>
+        <option value="bon">Bon état</option>
+        <option value="renover">À rénover</option>
+      </select>
+    </div>
+    <div class="n-filter-group">
+      <label>Classe énergie (DPE)</label>
+      <select id="lDpe" onchange="filter()">
+        <option value="">Tous</option>
+        <option value="A">A</option><option value="B">B</option>
+        <option value="C">C</option><option value="D">D</option>
+        <option value="E">E</option>
+      </select>
+    </div>
+    <div class="n-filter-group">
+      <label>Caractéristiques</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:0.8rem;color:var(--n-text-secondary)">
+        <label><input type="checkbox" id="lPiscine" onchange="filter()"> Piscine</label>
+        <label><input type="checkbox" id="lTerrasse" onchange="filter()"> Terrasse</label>
+        <label><input type="checkbox" id="lGarage" onchange="filter()"> Garage</label>
+        <label><input type="checkbox" id="lJardin" onchange="filter()"> Jardin</label>
+      </div>
+    </div>
+    <div class="n-filter-group">
+      <label>Meublé</label>
+      <select id="lFurnished" onchange="filter()">
+        <option value="all">Tous</option>
+        <option value="meuble">Meublé</option>
+        <option value="non-meuble">Non meublé</option>
+      </select>
+    </div>
+    <button class="n-btn-reset" onclick="resetFilters()">Réinitialiser</button>
+  </aside>
+
+  <div class="n-results-area">
+    <div class="n-results-header">
+      <div class="n-results-count" id="lCount"><strong>0</strong> biens trouvés</div>
+      <div class="n-results-tabs">
+        <button class="active" data-s="recent" onclick="sortBy('recent')">Récents</button>
+        <button data-s="price-asc" onclick="sortBy('price-asc')">Prix ↑</button>
+        <button data-s="price-desc" onclick="sortBy('price-desc')">Prix ↓</button>
+        <button data-s="surface" onclick="sortBy('surface')">Surface</button>
+      </div>
+    </div>
+    <div class="n-card-grid" id="lGrid"></div>
+  </div>
+</div>
+
+<div class="n-layout" style="padding-top:0">
+  <div style="grid-column:1/-1">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <h2 class="n-section-title">Outils location</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="n-btn n-btn-primary" onclick="toggleTool('rentEstimate')">Estimer un loyer</button>
+        <button class="n-btn n-btn-secondary" onclick="toggleTool('yield')">Calculateur de rendement</button>
+        <button class="n-btn n-btn-secondary" onclick="toggleTool('rentGuide')">Guide des loyers</button>
+      </div>
+    </div>
+
+    <div id="tp-rentEstimate" class="n-form" style="display:none;margin-bottom:16px">
+      <h3 class="n-section-title">Estimateur de loyer</h3>
+      <div class="n-form-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+        <div class="n-form-group"><label>Prix d'achat *</label><input type="number" id="rePrice" value="200000"></div>
+        <div class="n-form-group"><label>Surface</label><input type="number" id="reSurface" value="50"></div>
+        <div class="n-form-group"><label>Ville</label><select id="reCity"><option value="paris">Paris</option><option value="lyon">Lyon</option><option value="marseille">Marseille</option><option value="bordeaux">Bordeaux</option><option value="lille">Lille</option><option value="other">Autre</option></select></div>
+      </div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;padding:12px 0;margin-bottom:12px">
+        <div><div class="n-card-price" id="reResult" style="font-size:1.2rem">—</div><div style="font-size:0.75rem;color:var(--n-text-tertiary)">Loyer estimé / mois</div></div>
+      </div>
+      <div class="n-form-actions">
+        <button class="n-btn n-btn-primary" onclick="calcRentEstimate()">Calculer</button>
+        <button class="n-btn n-btn-secondary" onclick="toggleTool('rentEstimate')">Fermer</button>
+      </div>
+    </div>
+
+    <div id="tp-yield" class="n-form" style="display:none;margin-bottom:16px">
+      <h3 class="n-section-title">Calculateur de rendement locatif</h3>
+      <div class="n-form-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr))">
+        <div class="n-form-group"><label>Prix d'achat *</label><input type="number" id="yiPrice" value="200000"></div>
+        <div class="n-form-group"><label>Loyer mensuel</label><input type="number" id="yiRent" value="800"></div>
+        <div class="n-form-group"><label>Charges mensuelles</label><input type="number" id="yiCharges" value="50"></div>
+      </div>
+      <div style="display:flex;gap:24px;flex-wrap:wrap;justify-content:center;padding:12px 0;margin-bottom:12px">
+        <div><div class="n-card-price" id="yiResult" style="font-size:1.2rem">—</div><div style="font-size:0.75rem;color:var(--n-text-tertiary)">Rendement net</div></div>
+        <div><div class="n-card-price" id="yiDetail" style="font-size:1.2rem">—</div><div style="font-size:0.75rem;color:var(--n-text-tertiary)">Revenu net / an</div></div>
+      </div>
+      <div class="n-form-actions">
+        <button class="n-btn n-btn-primary" onclick="calcYield()">Calculer</button>
+        <button class="n-btn n-btn-secondary" onclick="toggleTool('yield')">Fermer</button>
+      </div>
+    </div>
+
+    <div id="tp-rentGuide" class="n-form" style="display:none;margin-bottom:16px">
+      <h3 class="n-section-title">📖 Guide des loyers 2025</h3>
+      <p style="font-size:.85rem;color:var(--n-text-secondary);margin-bottom:16px">Références indicatives de loyers par ville (€/m²/mois)</p>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:.82rem">
+          <tr><th style="text-align:left;padding:10px 12px;background:var(--n-bg);font-weight:500;color:var(--n-text-secondary);border-bottom:1px solid var(--n-border)">Ville</th><th style="padding:10px 12px;background:var(--n-bg);font-weight:500;color:var(--n-text-secondary);border-bottom:1px solid var(--n-border)">Studio</th><th style="padding:10px 12px;background:var(--n-bg);font-weight:500;color:var(--n-text-secondary);border-bottom:1px solid var(--n-border)">2 pièces</th><th style="padding:10px 12px;background:var(--n-bg);font-weight:500;color:var(--n-text-secondary);border-bottom:1px solid var(--n-border)">3 pièces</th><th style="padding:10px 12px;background:var(--n-bg);font-weight:500;color:var(--n-text-secondary);border-bottom:1px solid var(--n-border)">4+ pièces</th></tr>
+          <tr><td style="padding:10px 12px;border-bottom:1px solid var(--n-border);font-weight:500">Paris</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">25-35 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">22-30 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">18-25 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">15-20 €</td></tr>
+          <tr><td style="padding:10px 12px;border-bottom:1px solid var(--n-border);font-weight:500">Lyon</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">18-24 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">15-20 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">12-17 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">10-14 €</td></tr>
+          <tr><td style="padding:10px 12px;border-bottom:1px solid var(--n-border);font-weight:500">Marseille</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">14-18 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">11-15 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">9-12 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">8-10 €</td></tr>
+          <tr><td style="padding:10px 12px;border-bottom:1px solid var(--n-border);font-weight:500">Bordeaux</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">16-22 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">13-18 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">11-15 €</td><td style="padding:10px 12px;border-bottom:1px solid var(--n-border)">9-12 €</td></tr>
+          <tr><td style="padding:10px 12px;font-weight:500">Lille</td><td style="padding:10px 12px">14-18 €</td><td style="padding:10px 12px">11-15 €</td><td style="padding:10px 12px">9-12 €</td><td style="padding:10px 12px">8-10 €</td></tr>
+        </table>
+      </div>
+      <div class="n-form-actions" style="margin-top:12px">
+        <button class="n-btn n-btn-secondary" onclick="toggleTool('rentGuide')">Fermer</button>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:24px">
+      <div class="n-dash-card" style="cursor:pointer" onclick="location.href='vente.html'">
+        <div class="n-dc-icon" style="background:rgba(255,56,92,0.15)">💰</div>
+        <h3 style="font-size:.95rem;font-weight:600;margin-bottom:4px">💰 Acheter un bien</h3>
+        <p style="font-size:.82rem;color:var(--n-text-secondary)">Explorez les opportunités d'achat d'appartements, maisons et terrains.</p>
+        <button class="n-btn n-btn-primary" style="margin-top:10px;width:100%">Voir les biens à vendre →</button>
+      </div>
+      <div class="n-dash-card" style="cursor:pointer" onclick="location.href='scoring.html'">
+        <div class="n-dc-icon" style="background:rgba(0,240,255,0.15)">🔬</div>
+        <h3 style="font-size:.95rem;font-weight:600;margin-bottom:4px">🔬 Score & Évaluation IA</h3>
+        <p style="font-size:.82rem;color:var(--n-text-secondary)">Évaluez la valeur locative et les risques géographiques d'un bien.</p>
+        <button class="n-btn n-btn-secondary" style="margin-top:10px;width:100%">Accéder au Scoring →</button>
+      </div>
+      <div class="n-dash-card" style="cursor:pointer" onclick="location.href='pro.html'">
+        <div class="n-dc-icon" style="background:rgba(255,193,7,0.15)">🏢</div>
+        <h3 style="font-size:.95rem;font-weight:600;margin-bottom:4px">🏢 Espace Pro & Bailleurs</h3>
+        <p style="font-size:.82rem;color:var(--n-text-secondary)">Gestion locative, dépôts d'annonces et statistiques pro.</p>
+        <button class="n-btn n-btn-secondary" style="margin-top:10px;width:100%">Espace Pro →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="n-modal-overlay" id="modalOverlay">
+  <div class="n-modal">
+    <div class="n-modal-header">
+      <h2 id="modalTitle">Détail du bien</h2>
+      <button class="n-modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="n-modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+        <footer class="n-footer">
+      <div class="n-footer-inner">
+        <div>
+          <div class="n-logo" style="margin-bottom:10px;font-size:1.1rem">
+            <div class="n-logo-icon"><svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="32" height="32" rx="8" fill="url(#brandGradV)"/><path d="M16 6L7 13.5V25.5H13V18.5H19V25.5H25V13.5L16 6Z" fill="white" fill-opacity="0.95"/><path d="M16 11.5L11 15.5V22.5H14.5V17.5H17.5V22.5H21V15.5L16 11.5Z" fill="#e64749"/><defs><linearGradient id="brandGradV" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#e64749"/><stop offset="1" stop-color="#c93537"/></linearGradient></defs></svg></div>
+            <span>Immo</span><span class="n-cyan">Express</span>
+          </div>
+          <p>La plateforme immobilière intelligente. Annonces vérifiées, analyses IA, mise en relation directe.</p>
+        </div>
+        <div>
+          <h4>Annonces</h4>
+          <ul>
+            <li><a href="vente.html">💰 Acheter</a></li>
+            <li><a href="location.html">📍 Louer</a></li>
+            <li><a href="scoring.html">🔬 Score de confiance</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Outils</h4>
+          <ul>
+            <li><a href="scoring.html">📊 Analyse IA</a></li>
+            <li><a href="risques.html">🌍 Risques géographiques</a></li>
+            <li><a href="recherche.html">🔍 Recherche avancée</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>EVA · NODUS</h4>
+          <ul>
+            <li><a href="pro.html">🏢 Espace Pro</a></li>
+            <li><a href="dashboard.html">⚙️ Administration</a></li>
+            <li><a href="profil.html">👤 Mon profil</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="n-footer-bottom">
+        <span>© 2026 Immo-Express — Plateforme immobilière intelligente</span>
+        <span class="n-footer-eva">⚡ Powered by EVA · NODUS SYSTEMS</span>
+      </div>
+    </footer>
+<script>
+
+
+function scoreBadge(s) { if(!s) return ""; const c = s >= 80 ? "n-score-high" : s >= 60 ? "n-score-mid" : "n-score-low"; return "<span class=\"n-card-score " + c + "\">\u2b50 " + s + "</span>"; }
+
+window.pageState = { search: "", type: "all", minPrice: "", maxPrice: "", minSurface: "", pieces: "all", furnished: "all", publisher: "all", sort: "recent" };
+
+document.querySelectorAll("#typeBtns button").forEach(b => b.addEventListener("click", function() {
+  document.querySelectorAll("#typeBtns button").forEach(x => x.classList.remove("active"));
+  this.classList.add("active"); window.pageState.type = this.dataset.v; window.renderPage();
+}));
+document.querySelectorAll("#pieceBtns button").forEach(b => b.addEventListener("click", function() {
+  document.querySelectorAll("#pieceBtns button").forEach(x => x.classList.remove("active"));
+  this.classList.add("active"); window.pageState.pieces = this.dataset.p; window.renderPage();
+}));
+
+function filter() {
+  window.pageState.search = document.getElementById("lSearch").value;
+  window.pageState.minPrice = document.getElementById("lMin").value;
+  window.pageState.maxPrice = document.getElementById("lMax").value;
+  window.pageState.minSurface = document.getElementById("lSurf").value;
+  state.furnished = document.getElementById("lFurnished").value;
+  window.pageState.publisher = document.getElementById("lPub").value;
+  window.renderPage();
+}
+function sortBy(s) {
+  window.pageState.sort = s;
+  document.querySelectorAll(".n-results-tabs button").forEach(b => b.classList.toggle("active", b.dataset.s === s));
+  window.renderPage();
+}
+function resetFilters() {
+  Object.assign(window.pageState, { search: "", type: "all", minPrice: "", maxPrice: "", minSurface: "", pieces: "all", furnished: "all", publisher: "all", sort: "recent" });
+  document.getElementById("lSearch").value = "";
+  document.getElementById("lMin").value = "";
+  document.getElementById("lMax").value = "";
+  document.getElementById("lSurf").value = "";
+  document.getElementById("lFurnished").value = "all";
+  document.getElementById("lPub").value = "all";
+  document.querySelectorAll(".n-filter-btns button").forEach(b => b.classList.remove("active"));
+  document.querySelectorAll("[data-v=\"all\"],[data-p=\"all\"]").forEach(b => b.classList.add("active"));
+  document.getElementById("lType").value = "all";
+  window.renderPage();
+}
+
+window.renderPage = function() {
+  const grid = document.getElementById("lGrid");
+  const count = document.getElementById("lCount");
+  let f = listings.filter(p => {
+    if (window.pageState.type !== "all" && p.type !== window.pageState.type) return false;
+    if (window.pageState.pieces !== "all") { const n = parseInt(window.pageState.pieces); if (window.pageState.pieces === "4" ? p.pieces < 4 : p.pieces !== n) return false; }
+    if (window.pageState.minPrice && p.price < Number(window.pageState.minPrice)) return false;
+    if (window.pageState.maxPrice && p.price > Number(window.pageState.maxPrice)) return false;
+    if (window.pageState.minSurface && p.surface < Number(window.pageState.minSurface)) return false;
+    if (state.furnished !== "all" && p.furnished !== state.furnished) return false;
+    if (window.pageState.publisher !== "all" && p.publisher !== window.pageState.publisher) return false;
+    if (window.pageState.search) { const q = window.pageState.search.toLowerCase(); if (!p.title.toLowerCase().includes(q) && !p.location.toLowerCase().includes(q)) return false; }
+    return true;
+  }).sort((a, b) => { switch (window.pageState.sort) { case "price-asc": return a.price - b.price; case "price-desc": return b.price - a.price; case "surface": return b.surface - a.surface; default: return b.id - a.id; } });
+  count.innerHTML = "<strong>" + f.length + "</strong> bien" + (f.length > 1 ? "s" : "") + " trouv\u00e9" + (f.length > 1 ? "s" : "");
+  document.getElementById("statCount").textContent = f.length;
+  const avg = f.length ? Math.round(f.reduce((s, p) => s + p.price, 0) / f.length) : 0;
+  document.getElementById("statAvg").textContent = avg ? avg.toLocaleString("fr-FR") + " \u20ac" : "\u2014 \u20ac";
+  if (!f.length) { grid.innerHTML = "<div class=\"n-no-results\"><div class=\"n-icon\">\ud83d\udd0d</div><h3>Aucun bien trouv\u00e9</h3><p>Essayez de modifier vos filtres.</p></div>"; return; }
+  grid.innerHTML = f.map(p => {
+    const cl = p.publisher === "pro" ? "n-pub-pro" : "n-pub-particulier";
+    const lb = p.publisher === "pro" ? "Pro" : "Particulier";
+    const badge = p.rentalType === "seasonal" ? "n-badge-seasonal" : "n-badge-rent";
+    const badgeLabel = p.rentalType === "seasonal" ? "Saisonnier" : "Location";
+    return "<div class=\"n-card\" onclick=\"openModal(" + p.id + ')\">' +
+      "<div class=\"n-card-img\" style=\"background:" + p.bg + '\">' +
+        "<span class=\"n-badge " + badge + '\">' + badgeLabel + "</span>" +
+        (p.furnished === "meuble" ? "<span class=\"n-badge n-badge-furnished\">Meubl\u00e9</span>" : "") +
+        (p.verified ? "<span class=\"n-badge n-badge-verified\">\u2713 V\u00e9rifi\u00e9</span>" : "") +
+        p.emoji +
+      "</div>" +
+      "<div class=\"n-card-info\">" +
+        "<div class=\"n-card-price\">" + p.priceLabel + scoreBadge((p.trustScore || p.score)) + "</div>" +
+        '<div class=\"n-card-price-sub\">' + (p.dpe ? "DPE " + p.dpe + " \u00b7 " : "") + Math.round(p.price / p.surface).toLocaleString("fr") + " \u20ac/m\u00b2</div>" +
+        "<div class=\"n-card-title\">" + p.title + "</div>" +
+        "<div class=\"n-card-location\">\ud83d\udccd " + p.location + "</div>" +
+        "<div class=\"n-card-tags\">" +
+          "<span class=\"n-card-tag\">\ud83d\udcd0 <strong>" + p.surface + " m\u00b2</strong></span>" +
+          "<span class=\"n-card-tag\">\ud83d\udecf\ufe0f <strong>" + p.pieces + "</strong> pi\u00e8ces</span>" +
+          (p.marketAvg ? "<span class=\"n-card-tag\" style=\"color:" + (p.price > p.marketAvg ? "var(--n-warning)" : "var(--n-success)") + '\">' + (p.price > p.marketAvg ? "\ud83d\udcc8 +" : "\ud83d\udcc9 ") + Math.round(Math.abs((p.price / p.marketAvg - 1) * 100)) + "% vs march\u00e9</span>" : "") +
+        "</div>" +
+        "<div class=\"n-card-footer\">" +
+          "<div class=\"n-card-publisher\"><span class=\"n-pub-type " + cl + '\">' + lb + "</span>" + p.pubName + "</div>" +
+          "<div class=\"n-card-date\">" + p.date + "</div>" +
+        "</div>" +
+      "</div>" +
+    "</div>";
+  }).join("");
+}
+
+function openModal(id) {
+  const p = listings.find(x => x.id === id); if (!p) return;
+  const cl = p.publisher === "pro" ? "n-pub-pro" : "n-pub-particulier";
+  const lb = p.publisher === "pro" ? "Pro" : "Particulier";
+  document.getElementById("modalTitle").textContent = p.title;
+  const diff = p.marketAvg ? Math.round((p.price - p.marketAvg) / p.marketAvg * 100) : 0;
+  const badge = p.rentalType === "seasonal" ? "n-badge-seasonal" : "n-badge-rent";
+  const badgeLabel = p.rentalType === "seasonal" ? "Saisonnier" : "Location";
+  document.getElementById("modalBody").innerHTML =
+    "<div class=\"n-card-img\" style=\"background:" + p.bg + ";font-size:4.5rem;min-height:220px;border-radius:var(--n-radius);margin-bottom:16px\">" + p.emoji + "</div>" +
+    "<div style=\"display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px\"><span class=\"n-badge " + badge + "\" style=\"position:static;font-size:.64rem\">" + badgeLabel + "</span></div>" +
+    "<div class=\"n-card-price\" style=\"font-size:1.6rem\">" + p.priceLabel + "</div>" +
+    '<div style=\"font-size:.85rem;color:var(--n-text-secondary);margin-bottom:12px\">\ud83d\udccd ' + p.location + " \u00b7 " + Math.round(p.price / p.surface).toLocaleString("fr") + " \u20ac/m\u00b2 \u00b7 DPE " + (p.dpe || "N/C") + " \u00b7 " + lb + " " + p.pubName + "</div>" +
+    "<div style=\"display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px\">" +
+      '<div class=\"n-innov-block\" style=\"padding:12px 14px;margin:0;display:flex;align-items:center;gap:8px;font-size:.82rem\">\ud83d\udcd0 <strong>' + p.surface + " m\u00b2</strong></div>" +
+      '<div class=\"n-innov-block\" style=\"padding:12px 14px;margin:0;display:flex;align-items:center;gap:8px;font-size:.82rem\">\ud83d\udecf\ufe0f <strong>' + p.pieces + "</strong> pi\u00e8ces</div>" +
+      '<div class=\"n-innov-block\" style=\"padding:12px 14px;margin:0;display:flex;align-items:center;gap:8px;font-size:.82rem\">\ud83d\udd0b DPE <strong>' + (p.dpe || "N/C") + "</strong></div>" +
+      '<div class=\"n-innov-block\" style=\"padding:12px 14px;margin:0;display:flex;align-items:center;gap:8px;font-size:.82rem\">\ud83d\udcc5 En ligne <strong>' + p.date + "</strong></div>" +
+    "</div>" +
+    '<div style=\"font-size:.85rem;color:var(--n-text-secondary);line-height:1.7;margin-bottom:14px\">' + p.desc + "</div>" +
+    ((p.trustScore || p.score) ? '<div class=\"n-innov-block\" style=\"display:flex;justify-content:space-between;align-items:center;padding:14px 16px\"><span style=\"font-size:.85rem;font-weight:500\">\ud83d\udee1\ufe0f Score de confiance</span><span style=\"font-weight:700;font-family:var(--n-mono);color:' + ((p.trustScore || p.score) >= 80 ? "var(--n-success)" : (p.trustScore || p.score) >= 60 ? "var(--n-warning)" : "var(--n-error)") + '\">' + (p.trustScore || p.score) + "/100</span></div>" : "") +
+    '<div style=\"display:flex;gap:10px;margin-top:16px;flex-wrap:wrap\">' +
+      '<button class=\"n-btn n-btn-primary\" onclick=\"alert(\'\ud83d\udce8 Message envoy\u00e9 \u00e0 ' + p.pubName + " !\')\">\u2709\ufe0f Contacter le bailleur</button>" +
+      "<button class=\"n-btn n-btn-secondary\" onclick=\"location.href=\'scoring.html\'\">\ud83d\udd2c Analyser ce bien</button>" +
+    "</div>";
+  document.getElementById("modalOverlay").classList.add("open");
+}
+function closeModal() { document.getElementById("modalOverlay").classList.remove("open"); }
+document.getElementById("modalOverlay").addEventListener("click", function(e) { if (e.target === this) closeModal(); });
+
+function toggleTool(id) {
+  const p = document.getElementById("tp-" + id);
+  ["rentEstimate", "yield", "rentGuide"].forEach(a => {
+    const el = document.getElementById("tp-" + a);
+    if (a === id) el.style.display = el.style.display === "none" ? "block" : "none";
+    else el.style.display = "none";
+  });
+}
+function calcRentEstimate() {
+  const price = parseFloat(document.getElementById("rePrice").value) || 0;
+  const surface = parseFloat(document.getElementById("reSurface").value) || 0;
+  const city = document.getElementById("reCity").value;
+  const coeffs = { paris: 35, lyon: 28, marseille: 22, bordeaux: 25, lille: 20, other: 18 };
+  const coeff = coeffs[city] || coeffs.other;
+  const est = Math.round(price * coeff / 100 * Math.min(1, surface / 50));
+  document.getElementById("reResult").textContent = est.toLocaleString("fr-FR") + " \u20ac/mois";
+}
+function calcYield() {
+  const price = parseFloat(document.getElementById("yiPrice").value) || 0;
+  const rent = parseFloat(document.getElementById("yiRent").value) || 0;
+  const charges = parseFloat(document.getElementById("yiCharges").value) || 0;
+  if (price <= 0) { document.getElementById("yiResult").textContent = "0%"; return; }
+  const net = (rent - charges) * 12;
+  const yieldPct = (net / price * 100);
+  document.getElementById("yiResult").textContent = yieldPct.toFixed(2) + "%";
+  document.getElementById("yiDetail").textContent = net.toLocaleString("fr-FR") + " \u20ac net / an";
+}
+
+window.renderPage();
+</script>
+
+<script>
+/* ========== NODUS SCROLL REVEAL ========== */
+(function() {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.n-reveal, .n-reveal-left, .n-reveal-right, .n-reveal-scale, .n-stagger').forEach(el => {
+      observer.observe(el);
+    });
+  });
+  
+  const observeAfterRender = () => {
+    setTimeout(() => {
+      document.querySelectorAll('.n-reveal, .n-reveal-left, .n-reveal-right, .n-reveal-scale, .n-stagger').forEach(el => {
+        observer.observe(el);
+      });
+    }, 100);
+  };
+  if (window.render) {
+    const orig = window.render;
+    window.render = function() {
+      orig.apply(this, arguments);
+      observeAfterRender();
+    };
+  }
+})();
+</script>
+</body>
+</html>
