@@ -1,3 +1,4 @@
+# EVA · NODUS SYSTEMS — Immo-Express
 *.apk
 *.aab
 jdk/
@@ -7,3 +8,10 @@ node_modules/
 www/
 .DS_Store
 Thumbs.db
+backend/data/
+backend/node_modules/
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.local
